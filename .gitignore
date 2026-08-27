@@ -1,1 +1,15 @@
 .ipynb_checkpoints/
+*.pth
+*.txt
+*.db
+.env
+mlruns/
+*.csv
+*.py
+model/
+local_outputs/
+logs/
+*.mar
+*.pt
+_later/
+pipeline.yaml
