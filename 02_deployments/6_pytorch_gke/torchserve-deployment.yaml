@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: torchserve
+  namespace: torchserve
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: torchserve
+  template:
+    metadata:
+      labels:
+        app: torchserve
+    spec:
+      containers:
+      - name: torchserve
+        image: us-docker.pkg.dev/vertex-ai/prediction/pytorch-cpu.1-11:latest
+        ports:
+        - containerPort: 8080
+          name: inference
+        - containerPort: 8081
+          name: management
+        - containerPort: 8082
+          name: metrics
+        env:
+        - name: MODEL_STORE
+          value: /mnt/models
+        volumeMounts:
+        - name: model-store
+          mountPath: /mnt/models
+        - name: config
+          mountPath: /home/model-server/config.properties
+          subPath: config.properties
+        resources:
+          requests:
+            cpu: "1"
+            memory: "2Gi"
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 20
+      volumes:
+      - name: model-store
+        emptyDir: {}     
+      - name: config
+        configMap:
+          name: torchserve-config
+      initContainers:
+      - name: download-model
+        image: google/cloud-sdk:slim
+        command:
+        - /bin/sh
+        - -c
+        - |
+          gsutil cp gs://my-model-training/result-mar/model.mar /mnt/models/model.mar
+          ls -la /mnt/models
+        volumeMounts:
+        - name: model-store
+          mountPath: /mnt/models
