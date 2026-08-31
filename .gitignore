@@ -5,7 +5,6 @@
 .env
 mlruns/
 *.csv
-*.py
 model/
 local_outputs/
 logs/
