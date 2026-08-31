@@ -12,3 +12,4 @@ logs/
 *.pt
 _later/
 pipeline.yaml
+_deleted/
